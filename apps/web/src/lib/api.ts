@@ -20,6 +20,7 @@ export async function api<T>(endpoint: string, options: ApiOptions = {}): Promis
   const res = await fetch(`${API_URL}${endpoint}`, {
     method,
     headers,
+    credentials: 'include',
     body: body ? JSON.stringify(body) : undefined,
   });
 
