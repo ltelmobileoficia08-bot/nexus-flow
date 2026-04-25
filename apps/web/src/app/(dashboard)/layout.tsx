@@ -14,6 +14,7 @@ import {
   Settings,
   LogOut,
   ChevronLeft,
+  ShoppingCart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -31,6 +32,7 @@ interface User {
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Inventory", href: "/dashboard/inventory", icon: Package },
+  { name: "Orders", href: "/dashboard/orders", icon: ShoppingCart },
   { name: "Suppliers", href: "/dashboard/suppliers", icon: Users },
   { name: "Forecasting", href: "/dashboard/forecasting", icon: TrendingUp },
   { name: "Logistics", href: "/dashboard/logistics", icon: Truck },
