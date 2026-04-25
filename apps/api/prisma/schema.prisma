@@ -1,0 +1,126 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  VIEWER
+}
+
+model User {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  name           String?
+  hashedPassword String
+  role           Role     @default(VIEWER)
+  avatarUrl      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  organizationId String?
+
+  @@map("users")
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users    User[]
+  products Product[]
+  suppliers Supplier[]
+  orders   Order[]
+
+  @@map("organizations")
+}
+
+model Product {
+  id             String   @id @default(cuid())
+  sku            String
+  name           String
+  description    String?
+  currentStock   Int      @default(0)
+  reorderPoint   Int      @default(0)
+  safetyStock    Int      @default(0)
+  unitCost       Float    @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+
+  orderItems OrderItem[]
+
+  @@unique([sku, organizationId])
+  @@map("products")
+}
+
+model Supplier {
+  id          String   @id @default(cuid())
+  name        String
+  email       String?
+  phone       String?
+  address     String?
+  rating      Float?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+
+  orders Order[]
+
+  @@map("suppliers")
+}
+
+enum OrderStatus {
+  DRAFT
+  PENDING
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  orderNumber String      @unique
+  status      OrderStatus @default(DRAFT)
+  totalAmount Float       @default(0)
+  currency    String      @default("USD")
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+
+  supplier   Supplier? @relation(fields: [supplierId], references: [id])
+  supplierId String?
+
+  items OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String @id @default(cuid())
+  quantity  Int
+  unitPrice Float
+
+  order   Order  @relation(fields: [orderId], references: [id])
+  orderId String
+
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+
+  @@map("order_items")
+}
