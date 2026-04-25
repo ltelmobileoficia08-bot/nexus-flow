@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useSyncExternalStore } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -51,47 +51,47 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
 
-  const subscribe = useCallback((cb: () => void) => {
-    window.addEventListener("storage", cb);
-    return () => window.removeEventListener("storage", cb);
-  }, []);
+  const [{ user, checked }, setAuthState] = useState(() => {
+    if (typeof window === "undefined") {
+      return { user: null as User | null, checked: false };
+    }
+    const token = localStorage.getItem("nexusflow_token");
+    const userData = localStorage.getItem("nexusflow_user");
+    if (!token || !userData) {
+      return { user: null as User | null, checked: true };
+    }
+    try {
+      return { user: JSON.parse(userData) as User, checked: true };
+    } catch {
+      return { user: null as User | null, checked: true };
+    }
+  });
 
-  const user = useSyncExternalStore<User | null>(
-    subscribe,
-    () => {
-      const token = localStorage.getItem("nexusflow_token");
-      const userData = localStorage.getItem("nexusflow_user");
-      if (!token || !userData) return null;
-      try {
-        return JSON.parse(userData) as User;
-      } catch {
-        return null;
-      }
-    },
-    () => null,
-  );
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("nexusflow_sidebar_collapsed") === "true";
+  });
 
-  const collapsed = useSyncExternalStore(
-    subscribe,
-    () => localStorage.getItem("nexusflow_sidebar_collapsed") === "true",
-    () => false,
-  );
+  useEffect(() => {
+    if (checked && !user) {
+      router.push("/auth/login");
+    }
+  }, [checked, user, router]);
 
-  if (user === null) {
-    router.push("/auth/login");
-  }
-
-  function handleLogout() {
+  const handleLogout = useCallback(() => {
     localStorage.removeItem("nexusflow_token");
     localStorage.removeItem("nexusflow_user");
+    setAuthState({ user: null, checked: true });
     router.push("/auth/login");
-  }
+  }, [router]);
 
-  function toggleCollapsed() {
-    const next = !collapsed;
-    localStorage.setItem("nexusflow_sidebar_collapsed", String(next));
-    window.dispatchEvent(new Event("storage"));
-  }
+  const toggleCollapsed = useCallback(() => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem("nexusflow_sidebar_collapsed", String(next));
+      return next;
+    });
+  }, []);
 
   if (!user) {
     return (
