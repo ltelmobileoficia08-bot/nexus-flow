@@ -15,6 +15,7 @@ import {
   LogOut,
   ChevronLeft,
   ShoppingCart,
+  BarChart3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -34,9 +35,10 @@ const navigation = [
   { name: "Inventory", href: "/dashboard/inventory", icon: Package },
   { name: "Orders", href: "/dashboard/orders", icon: ShoppingCart },
   { name: "Suppliers", href: "/dashboard/suppliers", icon: Users },
-  { name: "Forecasting", href: "/dashboard/forecasting", icon: TrendingUp },
+  { name: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
+  { name: "Shopify", href: "/dashboard/forecasting", icon: TrendingUp },
   { name: "Logistics", href: "/dashboard/logistics", icon: Truck },
-  { name: "Negotiations", href: "/dashboard/negotiations", icon: MessageSquare },
+  { name: "Notifications", href: "/dashboard/negotiations", icon: MessageSquare },
   { name: "Returns", href: "/dashboard/returns", icon: RotateCcw },
 ];
 

@@ -207,3 +207,144 @@ export interface DashboardStats {
 export function getDashboardStats(token: string) {
   return api<DashboardStats>('/dashboard/stats', { token });
 }
+
+// Analytics types
+export interface KpiSummary {
+  totalInventoryValue: number;
+  totalOrderValue: number;
+  avgOrderValue: number;
+  fulfillmentRate: number;
+  totalProducts: number;
+  lowStockCount: number;
+  outOfStockCount: number;
+  totalSuppliers: number;
+  avgSupplierRating: number;
+  totalOrders: number;
+  deliveredOrders: number;
+  totalItemsOrdered: number;
+}
+
+export interface SupplierPerformance {
+  id: string;
+  name: string;
+  rating: number | null;
+  totalOrders: number;
+  deliveredOrders: number;
+  totalSpend: number;
+  avgOrderValue: number;
+  fulfillmentRate: number;
+  onTimeDelivery: number;
+  activeStatus: string;
+}
+
+export interface InventoryTurnover {
+  id: string;
+  sku: string;
+  name: string;
+  currentStock: number;
+  reorderPoint: number;
+  safetyStock: number;
+  unitCost: number;
+  totalSold: number;
+  turnoverRate: number;
+  daysOfSupply: number;
+  stockValue: number;
+  stockHealth: string;
+}
+
+export interface CashFlowTrends {
+  monthlyTrends: { month: string; totalSpend: number; orderCount: number; avgOrderSize: number }[];
+  summary: { totalSpend: number; avgMonthlySpend: number; totalOrders: number; monthsCovered: number };
+}
+
+export function getKpis(token: string) {
+  return api<KpiSummary>('/analytics/kpis', { token });
+}
+
+export function getSupplierPerformance(token: string) {
+  return api<SupplierPerformance[]>('/analytics/supplier-performance', { token });
+}
+
+export function getInventoryTurnover(token: string) {
+  return api<InventoryTurnover[]>('/analytics/inventory-turnover', { token });
+}
+
+export function getCashFlow(token: string) {
+  return api<CashFlowTrends>('/analytics/cash-flow', { token });
+}
+
+export function exportReport(token: string) {
+  return api<Record<string, unknown>>('/analytics/export', { token });
+}
+
+// Shopify integration
+export interface ShopifyStatus {
+  configured: boolean;
+  storeUrl: string | null;
+}
+
+export function getShopifyStatus(token: string) {
+  return api<ShopifyStatus>('/integrations/shopify/status', { token });
+}
+
+export function syncShopifyProducts(token: string) {
+  return api<{ synced: number; message: string }>('/integrations/shopify/sync-products', {
+    method: 'POST',
+    token,
+  });
+}
+
+export function getShopifySalesTrends(token: string) {
+  return api<{ source: string; trends: { month: string; revenue: number; orders: number; units: number }[] }>(
+    '/integrations/shopify/sales-trends',
+    { token },
+  );
+}
+
+// Notifications
+export interface NotificationStatus {
+  configured: boolean;
+  senderEmail: string;
+}
+
+export interface EmailTemplate {
+  id: string;
+  name: string;
+  description: string;
+  requiredFields: string[];
+}
+
+export function getNotificationStatus(token: string) {
+  return api<NotificationStatus>('/notifications/status', { token });
+}
+
+export function getEmailTemplates(token: string) {
+  return api<EmailTemplate[]>('/notifications/templates', { token });
+}
+
+export function sendRfqEmail(
+  token: string,
+  data: { supplierId: string; products: { name: string; quantity: number }[]; notes?: string },
+) {
+  return api<{ sent: boolean; message: string; preview: string }>('/notifications/rfq', {
+    method: 'POST',
+    body: data as unknown as Record<string, unknown>,
+    token,
+  });
+}
+
+export function sendOrderConfirmation(token: string, orderId: string) {
+  return api<{ sent: boolean; message: string; preview: string }>('/notifications/order-confirmation', {
+    method: 'POST',
+    body: { orderId },
+    token,
+  });
+}
+
+export function sendPaymentReminder(token: string, orderId: string) {
+  return api<{ sent: boolean; message: string; preview: string }>('/notifications/payment-reminder', {
+    method: 'POST',
+    body: { orderId },
+    token,
+  });
+}
