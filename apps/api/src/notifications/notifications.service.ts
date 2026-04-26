@@ -2,6 +2,15 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 interface EmailPayload {
   to: string;
   subject: string;
@@ -80,7 +89,7 @@ export class NotificationsService {
     });
 
     const itemRows = data.products
-      .map((p) => `<tr><td style="padding:8px;border:1px solid #ddd">${p.name}</td><td style="padding:8px;border:1px solid #ddd;text-align:center">${p.quantity}</td></tr>`)
+      .map((p) => `<tr><td style="padding:8px;border:1px solid #ddd">${escapeHtml(p.name)}</td><td style="padding:8px;border:1px solid #ddd;text-align:center">${p.quantity}</td></tr>`)
       .join('');
 
     const html = `
@@ -90,8 +99,8 @@ export class NotificationsService {
           <p style="margin:4px 0 0">Request for Quotation</p>
         </div>
         <div style="padding:20px;background:#f9fafb">
-          <p>Dear ${supplier.name},</p>
-          <p>${org?.name ?? 'Our organization'} would like to request a quotation for the following items:</p>
+          <p>Dear ${escapeHtml(supplier.name)},</p>
+          <p>${escapeHtml(org?.name ?? 'Our organization')} would like to request a quotation for the following items:</p>
           <table style="width:100%;border-collapse:collapse;margin:16px 0">
             <thead><tr style="background:#e5e7eb">
               <th style="padding:8px;border:1px solid #ddd;text-align:left">Product</th>
@@ -99,9 +108,9 @@ export class NotificationsService {
             </tr></thead>
             <tbody>${itemRows}</tbody>
           </table>
-          ${data.notes ? `<p><strong>Notes:</strong> ${data.notes}</p>` : ''}
+          ${data.notes ? `<p><strong>Notes:</strong> ${escapeHtml(data.notes)}</p>` : ''}
           <p>Please reply with your best pricing and delivery timeline.</p>
-          <p>Best regards,<br>${org?.name ?? 'NexusFlow AI'}</p>
+          <p>Best regards,<br>${escapeHtml(org?.name ?? 'NexusFlow AI')}</p>
         </div>
         <div style="padding:12px;text-align:center;color:#6b7280;font-size:12px">
           Sent via NexusFlow AI Supply Chain Platform
@@ -111,7 +120,7 @@ export class NotificationsService {
 
     const sent = await this.sendEmail({
       to: supplier.email,
-      subject: `RFQ from ${org?.name ?? 'NexusFlow AI'}`,
+      subject: `RFQ from ${escapeHtml(org?.name ?? 'NexusFlow AI')}`,
       html,
     });
 
@@ -148,7 +157,7 @@ export class NotificationsService {
       .map(
         (i) =>
           `<tr>
-            <td style="padding:8px;border:1px solid #ddd">${i.product.name}</td>
+            <td style="padding:8px;border:1px solid #ddd">${escapeHtml(i.product.name)}</td>
             <td style="padding:8px;border:1px solid #ddd;text-align:center">${i.quantity}</td>
             <td style="padding:8px;border:1px solid #ddd;text-align:right">$${i.unitPrice.toFixed(2)}</td>
             <td style="padding:8px;border:1px solid #ddd;text-align:right">$${(i.quantity * i.unitPrice).toFixed(2)}</td>
@@ -163,8 +172,8 @@ export class NotificationsService {
           <p style="margin:4px 0 0">Purchase Order Confirmation</p>
         </div>
         <div style="padding:20px;background:#f9fafb">
-          <p>Dear ${order.supplier.name},</p>
-          <p>This confirms purchase order <strong>${order.orderNumber}</strong>:</p>
+          <p>Dear ${escapeHtml(order.supplier.name)},</p>
+          <p>This confirms purchase order <strong>${escapeHtml(order.orderNumber)}</strong>:</p>
           <table style="width:100%;border-collapse:collapse;margin:16px 0">
             <thead><tr style="background:#e5e7eb">
               <th style="padding:8px;border:1px solid #ddd;text-align:left">Product</th>
@@ -178,8 +187,8 @@ export class NotificationsService {
               <td style="padding:8px;border:1px solid #ddd;text-align:right">$${order.totalAmount.toFixed(2)}</td>
             </tr></tfoot>
           </table>
-          ${order.notes ? `<p><strong>Notes:</strong> ${order.notes}</p>` : ''}
-          <p>Best regards,<br>${org?.name ?? 'NexusFlow AI'}</p>
+          ${order.notes ? `<p><strong>Notes:</strong> ${escapeHtml(order.notes)}</p>` : ''}
+          <p>Best regards,<br>${escapeHtml(org?.name ?? 'NexusFlow AI')}</p>
         </div>
       </div>
     `;
@@ -223,11 +232,11 @@ export class NotificationsService {
           <p style="margin:4px 0 0">Payment Reminder</p>
         </div>
         <div style="padding:20px;background:#f9fafb">
-          <p>Dear ${order.supplier.name},</p>
-          <p>This is a reminder regarding purchase order <strong>${order.orderNumber}</strong> with a total of <strong>$${order.totalAmount.toFixed(2)}</strong>.</p>
-          <p>Current status: <strong>${order.status}</strong></p>
+          <p>Dear ${escapeHtml(order.supplier.name)},</p>
+          <p>This is a reminder regarding purchase order <strong>${escapeHtml(order.orderNumber)}</strong> with a total of <strong>$${order.totalAmount.toFixed(2)}</strong>.</p>
+          <p>Current status: <strong>${escapeHtml(order.status)}</strong></p>
           <p>Please ensure payment arrangements are in order. Contact us if you have any questions.</p>
-          <p>Best regards,<br>${org?.name ?? 'NexusFlow AI'}</p>
+          <p>Best regards,<br>${escapeHtml(org?.name ?? 'NexusFlow AI')}</p>
         </div>
       </div>
     `;

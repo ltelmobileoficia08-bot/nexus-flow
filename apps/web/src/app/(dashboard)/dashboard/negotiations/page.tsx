@@ -333,9 +333,12 @@ export default function NegotiationsPage() {
                       <summary className="text-xs text-muted-foreground cursor-pointer">
                         Preview email
                       </summary>
-                      <div
-                        className="mt-2 border rounded p-3 bg-white text-sm"
-                        dangerouslySetInnerHTML={{ __html: sendResult.preview }}
+                      <iframe
+                        sandbox=""
+                        srcDoc={sendResult.preview}
+                        className="mt-2 border rounded bg-white w-full"
+                        style={{ minHeight: 300 }}
+                        title="Email preview"
                       />
                     </details>
                   )}
