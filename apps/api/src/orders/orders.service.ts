@@ -98,8 +98,10 @@ export class OrdersService {
   async remove(id: string, organizationId: string) {
     const order = await this.prisma.order.findFirst({ where: { id, organizationId } });
     if (!order) throw new NotFoundException('Order not found');
-    await this.prisma.orderItem.deleteMany({ where: { orderId: id } });
-    await this.prisma.order.delete({ where: { id } });
+    await this.prisma.$transaction(async (tx) => {
+      await tx.orderItem.deleteMany({ where: { orderId: id } });
+      await tx.order.delete({ where: { id } });
+    });
     return { deleted: true };
   }
 }

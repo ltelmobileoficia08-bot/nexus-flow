@@ -55,7 +55,7 @@ export class AuthController {
 
   @Post('logout')
   logout(@Res({ passthrough: true }) res: Res) {
-    res.clearCookie('nexusflow_token', { path: '/' });
+    res.clearCookie('nexusflow_token', { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' as const, path: '/' });
     return { message: 'Logged out' };
   }
 }
