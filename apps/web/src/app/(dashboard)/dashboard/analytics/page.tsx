@@ -61,8 +61,6 @@ export default function AnalyticsPage() {
   }, []);
 
   const handleExport = useCallback(() => {
-    const token = localStorage.getItem("nexusflow_token");
-    if (!token) return;
     const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api";
     window.open(`${apiUrl}/analytics/export`, "_blank");
   }, []);

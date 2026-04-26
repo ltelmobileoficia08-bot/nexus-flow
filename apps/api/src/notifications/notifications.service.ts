@@ -120,7 +120,7 @@ export class NotificationsService {
 
     const sent = await this.sendEmail({
       to: supplier.email,
-      subject: `RFQ from ${escapeHtml(org?.name ?? 'NexusFlow AI')}`,
+      subject: `RFQ from ${org?.name ?? 'NexusFlow AI'}`,
       html,
     });
 
