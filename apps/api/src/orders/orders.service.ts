@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { randomBytes } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { OrderStatus } from '@prisma/client';
@@ -40,6 +40,20 @@ export class OrdersService {
       items: { productId: string; quantity: number; unitPrice: number }[];
     },
   ) {
+    const supplier = await this.prisma.supplier.findFirst({
+      where: { id: data.supplierId, organizationId },
+    });
+    if (!supplier) throw new BadRequestException('Supplier not found in your organization');
+
+    const productIds = [...new Set(data.items.map((i) => i.productId))];
+    const products = await this.prisma.product.findMany({
+      where: { id: { in: productIds }, organizationId },
+      select: { id: true },
+    });
+    if (products.length !== productIds.length) {
+      throw new BadRequestException('One or more products not found in your organization');
+    }
+
     const totalAmount = data.items.reduce(
       (sum, item) => sum + item.quantity * item.unitPrice,
       0,
