@@ -83,7 +83,8 @@ export default function DashboardLayout({
   }, [checked, user, router]);
 
   const handleLogout = useCallback(async () => {
-    await fetch("/api/auth/logout", { method: "POST", credentials: "include" }).catch(() => {});
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api";
+    await fetch(`${apiUrl}/auth/logout`, { method: "POST", credentials: "include" }).catch(() => {});
     localStorage.removeItem("nexusflow_token");
     localStorage.removeItem("nexusflow_user");
     setAuthState({ user: null, checked: true });
