@@ -12,9 +12,9 @@ export class ProductsService {
     });
   }
 
-  async findOne(id: string) {
-    const product = await this.prisma.product.findUnique({
-      where: { id },
+  async findOne(id: string, organizationId: string) {
+    const product = await this.prisma.product.findFirst({
+      where: { id, organizationId },
       include: { orderItems: { include: { order: true } } },
     });
     if (!product) throw new NotFoundException('Product not found');
@@ -40,6 +40,7 @@ export class ProductsService {
 
   async update(
     id: string,
+    organizationId: string,
     data: {
       name?: string;
       description?: string;
@@ -49,10 +50,14 @@ export class ProductsService {
       unitCost?: number;
     },
   ) {
+    const product = await this.prisma.product.findFirst({ where: { id, organizationId } });
+    if (!product) throw new NotFoundException('Product not found');
     return this.prisma.product.update({ where: { id }, data });
   }
 
-  async remove(id: string) {
+  async remove(id: string, organizationId: string) {
+    const product = await this.prisma.product.findFirst({ where: { id, organizationId } });
+    if (!product) throw new NotFoundException('Product not found');
     await this.prisma.product.delete({ where: { id } });
     return { deleted: true };
   }

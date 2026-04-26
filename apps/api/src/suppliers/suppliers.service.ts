@@ -13,9 +13,9 @@ export class SuppliersService {
     });
   }
 
-  async findOne(id: string) {
-    const supplier = await this.prisma.supplier.findUnique({
-      where: { id },
+  async findOne(id: string, organizationId: string) {
+    const supplier = await this.prisma.supplier.findFirst({
+      where: { id, organizationId },
       include: { orders: { orderBy: { createdAt: 'desc' }, take: 10 } },
     });
     if (!supplier) throw new NotFoundException('Supplier not found');
@@ -39,6 +39,7 @@ export class SuppliersService {
 
   async update(
     id: string,
+    organizationId: string,
     data: {
       name?: string;
       email?: string;
@@ -47,10 +48,14 @@ export class SuppliersService {
       rating?: number;
     },
   ) {
+    const supplier = await this.prisma.supplier.findFirst({ where: { id, organizationId } });
+    if (!supplier) throw new NotFoundException('Supplier not found');
     return this.prisma.supplier.update({ where: { id }, data });
   }
 
-  async remove(id: string) {
+  async remove(id: string, organizationId: string) {
+    const supplier = await this.prisma.supplier.findFirst({ where: { id, organizationId } });
+    if (!supplier) throw new NotFoundException('Supplier not found');
     await this.prisma.supplier.delete({ where: { id } });
     return { deleted: true };
   }

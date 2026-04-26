@@ -30,8 +30,8 @@ export class ProductsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.productsService.findOne(id);
+  findOne(@Request() req: AuthRequest, @Param('id') id: string) {
+    return this.productsService.findOne(id, req.user.organizationId);
   }
 
   @Post()
@@ -55,6 +55,7 @@ export class ProductsController {
   @Patch(':id')
   @Roles(Role.ADMIN, Role.MANAGER)
   update(
+    @Request() req: AuthRequest,
     @Param('id') id: string,
     @Body()
     body: {
@@ -66,12 +67,12 @@ export class ProductsController {
       unitCost?: number;
     },
   ) {
-    return this.productsService.update(id, body);
+    return this.productsService.update(id, req.user.organizationId, body);
   }
 
   @Delete(':id')
   @Roles(Role.ADMIN)
-  remove(@Param('id') id: string) {
-    return this.productsService.remove(id);
+  remove(@Request() req: AuthRequest, @Param('id') id: string) {
+    return this.productsService.remove(id, req.user.organizationId);
   }
 }

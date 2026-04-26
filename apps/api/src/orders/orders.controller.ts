@@ -30,8 +30,8 @@ export class OrdersController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.ordersService.findOne(id);
+  findOne(@Request() req: AuthRequest, @Param('id') id: string) {
+    return this.ordersService.findOne(id, req.user.organizationId);
   }
 
   @Post()
@@ -50,13 +50,13 @@ export class OrdersController {
 
   @Patch(':id/status')
   @Roles(Role.ADMIN, Role.MANAGER)
-  updateStatus(@Param('id') id: string, @Body('status') status: OrderStatus) {
-    return this.ordersService.updateStatus(id, status);
+  updateStatus(@Request() req: AuthRequest, @Param('id') id: string, @Body('status') status: OrderStatus) {
+    return this.ordersService.updateStatus(id, req.user.organizationId, status);
   }
 
   @Delete(':id')
   @Roles(Role.ADMIN)
-  remove(@Param('id') id: string) {
-    return this.ordersService.remove(id);
+  remove(@Request() req: AuthRequest, @Param('id') id: string) {
+    return this.ordersService.remove(id, req.user.organizationId);
   }
 }

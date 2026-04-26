@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { randomBytes } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { OrderStatus } from '@prisma/client';
 
@@ -19,9 +20,9 @@ export class OrdersService {
     });
   }
 
-  async findOne(id: string) {
-    const order = await this.prisma.order.findUnique({
-      where: { id },
+  async findOne(id: string, organizationId: string) {
+    const order = await this.prisma.order.findFirst({
+      where: { id, organizationId },
       include: {
         supplier: true,
         items: { include: { product: true } },
@@ -44,8 +45,8 @@ export class OrdersService {
       0,
     );
 
-    const count = await this.prisma.order.count({ where: { organizationId } });
-    const orderNumber = `PO-${new Date().getFullYear()}-${String(count + 1).padStart(3, '0')}`;
+    const suffix = randomBytes(3).toString('hex').toUpperCase();
+    const orderNumber = `PO-${new Date().getFullYear()}-${suffix}`;
 
     return this.prisma.order.create({
       data: {
@@ -65,7 +66,9 @@ export class OrdersService {
     });
   }
 
-  async updateStatus(id: string, status: OrderStatus) {
+  async updateStatus(id: string, organizationId: string, status: OrderStatus) {
+    const order = await this.prisma.order.findFirst({ where: { id, organizationId } });
+    if (!order) throw new NotFoundException('Order not found');
     return this.prisma.order.update({
       where: { id },
       data: { status },
@@ -78,7 +81,9 @@ export class OrdersService {
     });
   }
 
-  async remove(id: string) {
+  async remove(id: string, organizationId: string) {
+    const order = await this.prisma.order.findFirst({ where: { id, organizationId } });
+    if (!order) throw new NotFoundException('Order not found');
     await this.prisma.orderItem.deleteMany({ where: { orderId: id } });
     await this.prisma.order.delete({ where: { id } });
     return { deleted: true };

@@ -35,6 +35,10 @@ async function bootstrap() {
       }
       const cleanPath = req.path.replace(/\/$/, '') || '/index';
       const htmlFile = join(staticDir, cleanPath + '.html');
+      if (!htmlFile.startsWith(staticDir)) {
+        next();
+        return;
+      }
       if (existsSync(htmlFile)) {
         res.sendFile(htmlFile);
         return;

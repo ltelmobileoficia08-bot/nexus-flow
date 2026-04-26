@@ -30,8 +30,8 @@ export class SuppliersController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.suppliersService.findOne(id);
+  findOne(@Request() req: AuthRequest, @Param('id') id: string) {
+    return this.suppliersService.findOne(id, req.user.organizationId);
   }
 
   @Post()
@@ -53,6 +53,7 @@ export class SuppliersController {
   @Patch(':id')
   @Roles(Role.ADMIN, Role.MANAGER)
   update(
+    @Request() req: AuthRequest,
     @Param('id') id: string,
     @Body()
     body: {
@@ -63,12 +64,12 @@ export class SuppliersController {
       rating?: number;
     },
   ) {
-    return this.suppliersService.update(id, body);
+    return this.suppliersService.update(id, req.user.organizationId, body);
   }
 
   @Delete(':id')
   @Roles(Role.ADMIN)
-  remove(@Param('id') id: string) {
-    return this.suppliersService.remove(id);
+  remove(@Request() req: AuthRequest, @Param('id') id: string) {
+    return this.suppliersService.remove(id, req.user.organizationId);
   }
 }
