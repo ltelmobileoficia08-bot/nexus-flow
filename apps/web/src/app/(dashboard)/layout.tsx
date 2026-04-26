@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useSyncExternalStore } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -14,6 +14,8 @@ import {
   Settings,
   LogOut,
   ChevronLeft,
+  ShoppingCart,
+  BarChart3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -31,10 +33,12 @@ interface User {
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Inventory", href: "/dashboard/inventory", icon: Package },
+  { name: "Orders", href: "/dashboard/orders", icon: ShoppingCart },
   { name: "Suppliers", href: "/dashboard/suppliers", icon: Users },
-  { name: "Forecasting", href: "/dashboard/forecasting", icon: TrendingUp },
+  { name: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
+  { name: "Shopify", href: "/dashboard/forecasting", icon: TrendingUp },
   { name: "Logistics", href: "/dashboard/logistics", icon: Truck },
-  { name: "Negotiations", href: "/dashboard/negotiations", icon: MessageSquare },
+  { name: "Notifications", href: "/dashboard/negotiations", icon: MessageSquare },
   { name: "Returns", href: "/dashboard/returns", icon: RotateCcw },
 ];
 
@@ -51,47 +55,49 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
 
-  const subscribe = useCallback((cb: () => void) => {
-    window.addEventListener("storage", cb);
-    return () => window.removeEventListener("storage", cb);
-  }, []);
+  const [{ user, checked }, setAuthState] = useState(() => {
+    if (typeof window === "undefined") {
+      return { user: null as User | null, checked: false };
+    }
+    const token = localStorage.getItem("nexusflow_token");
+    const userData = localStorage.getItem("nexusflow_user");
+    if (!token || !userData) {
+      return { user: null as User | null, checked: true };
+    }
+    try {
+      return { user: JSON.parse(userData) as User, checked: true };
+    } catch {
+      return { user: null as User | null, checked: true };
+    }
+  });
 
-  const user = useSyncExternalStore<User | null>(
-    subscribe,
-    () => {
-      const token = localStorage.getItem("nexusflow_token");
-      const userData = localStorage.getItem("nexusflow_user");
-      if (!token || !userData) return null;
-      try {
-        return JSON.parse(userData) as User;
-      } catch {
-        return null;
-      }
-    },
-    () => null,
-  );
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("nexusflow_sidebar_collapsed") === "true";
+  });
 
-  const collapsed = useSyncExternalStore(
-    subscribe,
-    () => localStorage.getItem("nexusflow_sidebar_collapsed") === "true",
-    () => false,
-  );
+  useEffect(() => {
+    if (checked && !user) {
+      router.push("/auth/login");
+    }
+  }, [checked, user, router]);
 
-  if (user === null) {
-    router.push("/auth/login");
-  }
-
-  function handleLogout() {
+  const handleLogout = useCallback(async () => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api";
+    await fetch(`${apiUrl}/auth/logout`, { method: "POST", credentials: "include" }).catch(() => {});
     localStorage.removeItem("nexusflow_token");
     localStorage.removeItem("nexusflow_user");
+    setAuthState({ user: null, checked: true });
     router.push("/auth/login");
-  }
+  }, [router]);
 
-  function toggleCollapsed() {
-    const next = !collapsed;
-    localStorage.setItem("nexusflow_sidebar_collapsed", String(next));
-    window.dispatchEvent(new Event("storage"));
-  }
+  const toggleCollapsed = useCallback(() => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem("nexusflow_sidebar_collapsed", String(next));
+      return next;
+    });
+  }, []);
 
   if (!user) {
     return (

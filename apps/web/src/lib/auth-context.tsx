@@ -39,7 +39,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState({ user, token, isLoading: false });
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api';
+    await fetch(`${apiUrl}/auth/logout`, { method: 'POST', credentials: 'include' }).catch(() => {});
     localStorage.removeItem('nexusflow_token');
     setState({ user: null, token: null, isLoading: false });
   }, []);
